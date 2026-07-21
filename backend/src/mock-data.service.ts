@@ -182,8 +182,8 @@ export class MockDataService implements OnModuleInit {
           mDate.setHours(12 + (m % 3) * 3, 0, 0, 0); // Horários variados
           
           let status = 'NS'; // Not Started
-          let homeGoals = null;
-          let awayGoals = null;
+          let homeGoals: number | null = null;
+          let awayGoals: number | null = null;
           
           if (roundNum < 25) {
             status = 'FT'; // Full Time
@@ -236,7 +236,7 @@ export class MockDataService implements OnModuleInit {
             // Estatísticas
             const stats = [
               { matchId: matchObj.id, teamId: homeTeam.id, xg: hXG, shots: hGoals * 3 + 4, shotsOnTarget: hGoals + 2, possession: 52, corners: 5, cards: 2 },
-              { matchId: matchObj.id, teamId: awayTeam.id, xg: aXG, shots: awayGoals * 3 + 3, shotsOnTarget: awayGoals + 1, possession: 48, corners: 4, cards: 3 }
+              { matchId: matchObj.id, teamId: awayTeam.id, xg: aXG, shots: aGoals * 3 + 3, shotsOnTarget: aGoals + 1, possession: 48, corners: 4, cards: 3 }
             ];
             
             // Guardamos em listas locais que depois agregaremos no TeamStats

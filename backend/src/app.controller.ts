@@ -51,7 +51,7 @@ export class AppController {
       });
 
       // Calcular predições e melhor mercado para cada jogo filtrado
-      const results = [];
+      const results: any[] = [];
       for (const match of matches) {
         // Encontrar odds 1X2 para este jogo
         let oddsList: any[] = [];
@@ -360,7 +360,7 @@ export class AppController {
         matches = matches.filter(m => m.leagueId === lid);
       }
 
-      const opportunities = [];
+      const opportunities: any[] = [];
 
       for (const match of matches) {
         const pred = await this.predictionService.getPrediction(match.id);

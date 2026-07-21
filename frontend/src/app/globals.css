@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0f19;
+  --foreground: #f8fafc;
+  --card: #131a26;
+  --card-border: #1f293d;
+  --primary: #10b981; /* Verde esmeralda para EV+ */
+  --primary-hover: #059669;
+  --accent: #3b82f6; /* Azul para odds e links */
+  --warning: #f59e0b; /* Amarelo */
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+
+/* Glassmorphism custom classes */
+.glass-panel {
+  background: rgba(19, 26, 38, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(31, 41, 61, 0.5);
+}
+
+.glow-primary {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+}

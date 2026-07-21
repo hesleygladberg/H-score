@@ -17,12 +17,14 @@ export default function TeamLogo({ logoUrl, teamName, className = '', size = 32 
   }, [logoUrl]);
 
   const initials = teamName
-    ? teamName
-        .split(' ')
-        .slice(0, 2)
-        .map(w => w[0])
-        .join('')
-        .toUpperCase()
+    ? teamName.trim().includes(' ')
+      ? teamName
+          .split(' ')
+          .slice(0, 2)
+          .map(w => w[0])
+          .join('')
+          .toUpperCase()
+      : teamName.substring(0, 2).toUpperCase()
     : 'FC';
 
   // Gerar um gradiente de cor baseado nas letras do time para ficar esteticamente dinâmico e consistente

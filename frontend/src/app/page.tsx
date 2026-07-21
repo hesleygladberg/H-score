@@ -49,14 +49,14 @@ export default function Dashboard() {
         setLoading(true);
         // 1. Buscar jogos de hoje
         const todayStr = new Date().toISOString().split('T')[0];
-        const resMatches = await fetch(`http://localhost:3001/api/matches?date=${todayStr}`);
+        const resMatches = await fetch(`/api/matches?date=${todayStr}`);
         if (resMatches.ok) {
           const dataMatches = await resMatches.json();
           setMatchesToday(dataMatches);
         }
 
         // 2. Buscar oportunidades do Scanner
-        const resScanner = await fetch(`http://localhost:3001/api/scanner?minEV=3`);
+        const resScanner = await fetch(`/api/scanner?minEV=3`);
         if (resScanner.ok) {
           const dataScanner = await resScanner.json();
           setOpportunities(dataScanner.slice(0, 5)); // top 5

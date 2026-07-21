@@ -62,7 +62,7 @@ export default function BankrollPage() {
   const fetchBankrollData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3001/api/bankroll');
+      const res = await fetch('/api/bankroll');
       if (res.ok) {
         const data = await res.json();
         setBankroll(data.bankroll);
@@ -90,7 +90,7 @@ export default function BankrollPage() {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/bankroll', {
+      const res = await fetch('/api/bankroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function BankrollPage() {
     const newRoi = (betProfit / bankroll) * 100;
 
     try {
-      const res = await fetch('http://localhost:3001/api/bankroll', {
+      const res = await fetch('/api/bankroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

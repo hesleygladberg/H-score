@@ -22,6 +22,7 @@ interface MatchToday {
   status: string;
   bestMarket: string;
   ev: number;
+  probabilities?: any;
 }
 
 interface League {
@@ -45,7 +46,7 @@ export default function MatchesPage() {
       try {
         setLoading(true);
         // Buscar ligas
-        const resLeagues = await fetch('http://localhost:3001/api/leagues');
+        const resLeagues = await fetch('/api/leagues');
         if (resLeagues.ok) {
           const dataLeagues = await resLeagues.json();
           setLeagues(dataLeagues);
@@ -53,7 +54,7 @@ export default function MatchesPage() {
 
         // Buscar jogos de hoje
         const todayStr = new Date().toISOString().split('T')[0];
-        const resMatches = await fetch(`http://localhost:3001/api/matches?date=${todayStr}`);
+        const resMatches = await fetch(`/api/matches?date=${todayStr}`);
         if (resMatches.ok) {
           const dataMatches = await resMatches.json();
           setMatches(dataMatches);

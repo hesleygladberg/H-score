@@ -37,7 +37,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // Buscar dados da banca no backend
   const fetchBankroll = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/bankroll');
+      const res = await fetch('/api/bankroll');
       if (res.ok) {
         const data = await res.json();
         setBankrollData(data);

@@ -80,7 +80,7 @@ export default function MatchDetailsPage() {
     const fetchMatchDetails = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:3001/api/matches/${matchId}`);
+        const res = await fetch(`/api/matches/${matchId}`);
         if (res.ok) {
           const data = await res.json();
           setMatchData(data);
@@ -116,7 +116,7 @@ export default function MatchDetailsPage() {
           };
         });
 
-        const res = await fetch('http://localhost:3001/api/dutching/calculate', {
+        const res = await fetch('/api/dutching/calculate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

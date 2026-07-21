@@ -49,7 +49,7 @@ export default function ScannerPage() {
       
       // Buscar oportunidades
       const resScanner = await fetch(
-        `http://localhost:3001/api/scanner?minEV=${minEV}&minProb=${minProb}`
+        `/api/scanner?minEV=${minEV}&minProb=${minProb}`
       );
       if (resScanner.ok) {
         const dataScanner = await resScanner.json();
@@ -66,7 +66,7 @@ export default function ScannerPage() {
     // Buscar ligas na inicialização
     const fetchLeagues = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/leagues');
+        const res = await fetch('/api/leagues');
         if (res.ok) {
           const data = await res.json();
           setLeagues(data);

@@ -54,7 +54,7 @@ export function generateMockStore() {
       teams.push({
         id: teamId,
         name,
-        logo: null,
+        logo: '',
         country: league.country
       });
       leagueTeamIds[league.id].push(teamId);

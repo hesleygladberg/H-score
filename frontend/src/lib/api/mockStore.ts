@@ -54,7 +54,7 @@ export function generateMockStore() {
       teams.push({
         id: teamId,
         name,
-        logo: `https://crests.football-data.org/${teamId}.png`,
+        logo: null,
         country: league.country
       });
       leagueTeamIds[league.id].push(teamId);

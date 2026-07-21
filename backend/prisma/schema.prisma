@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model League {
+  id        Int        @id
+  name      String
+  country   String
+  season    String
+  matches   Match[]
+  standings Standing[]
+}
+
+model Team {
+  id             Int             @id
+  name           String
+  logo           String
+  country        String
+  homeMatches    Match[]         @relation("HomeTeam")
+  awayMatches    Match[]         @relation("AwayTeam")
+  standings      Standing[]
+  lineups        Lineup[]
+  stats          TeamStats[]
+}
+
+model Match {
+  id            Int            @id
+  leagueId      Int
+  homeTeamId    Int
+  awayTeamId    Int
+  date          DateTime
+  status        String
+  round         String
+  venue         String?
+  referee       String?
+  
+  league        League         @relation(fields: [leagueId], references: [id])
+  homeTeam      Team           @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam      Team           @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  
+  lineups       Lineup[]
+  odds          Odds[]
+  predictions   Prediction[]
+  correctScores CorrectScore[]
+  dutchings     Dutching[]
+}
+
+model Standing {
+  id       String @id @default(uuid())
+  leagueId Int
+  teamId   Int
+  position Int
+  points   Int
+  wins     Int
+  draws    Int
+  losses   Int
+  gf       Int
+  ga       Int
+  gd       Int
+  
+  league   League @relation(fields: [leagueId], references: [id])
+  team     Team   @relation(fields: [teamId], references: [id])
+}
+
+model Player {
+  id        Int      @id
+  teamId    Int
+  name      String
+  position  String
+  injured   Boolean  @default(false)
+  suspended Boolean  @default(false)
+  lineups   Lineup[]
+}
+
+model Lineup {
+  id        String  @id @default(uuid())
+  matchId   Int
+  teamId    Int
+  playerId  Int
+  starter   Boolean
+  formation String
+  
+  match     Match   @relation(fields: [matchId], references: [id])
+  team      Team    @relation(fields: [teamId], references: [id])
+  player    Player  @relation(fields: [playerId], references: [id])
+}
+
+model TeamStats {
+  id            String @id @default(uuid())
+  teamId        Int
+  season        String
+  matches       Int
+  wins          Int
+  draws         Int
+  losses        Int
+  goalsFor      Int
+  goalsAgainst  Int
+  xg            Float
+  xga           Float
+  shots         Int
+  shotsOnTarget Int
+  corners       Int
+  cards         Int
+  possession    Float
+  
+  team          Team   @relation(fields: [teamId], references: [id])
+}
+
+model Odds {
+  id        String   @id @default(uuid())
+  matchId   Int
+  market    String
+  selection String
+  odd       Float
+  bookmaker String
+  updatedAt DateTime @updatedAt
+  
+  match     Match    @relation(fields: [matchId], references: [id])
+}
+
+model Prediction {
+  id                 String @id @default(uuid())
+  matchId            Int
+  homeWin            Float
+  draw               Float
+  awayWin            Float
+  over05             Float
+  over15             Float
+  over25             Float
+  over35             Float
+  under25            Float
+  bttsYes            Float
+  bttsNo             Float
+  expectedHomeGoals  Float
+  expectedAwayGoals  Float
+  
+  match              Match  @relation(fields: [matchId], references: [id])
+}
+
+model CorrectScore {
+  id          String @id @default(uuid())
+  matchId     Int
+  score       String
+  probability Float
+  fairOdd     Float
+  
+  match       Match  @relation(fields: [matchId], references: [id])
+}
+
+model Dutching {
+  id             String @id @default(uuid())
+  matchId        Int
+  stake          Float
+  selectedScores Json
+  coverage       Float
+  roi            Float
+  ev             Float
+  profit         Float
+  
+  match          Match  @relation(fields: [matchId], references: [id])
+}
+
+model Bankroll {
+  id           String   @id @default("active")
+  bankroll     Float
+  defaultStake Float
+  maxRisk      Float
+  updatedAt    DateTime @updatedAt
+}
+
+model BankrollHistory {
+  id      String   @id @default(uuid())
+  date    DateTime @default(now())
+  balance Float
+  profit  Float
+  roi     Float
+}

@@ -5,7 +5,7 @@ import pg from 'pg';
 let prisma: any = null;
 let isMock = false;
 
-const dbUrl = process.env.DATABASE_URL;
+const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL;
 
 if (!dbUrl || dbUrl.startsWith('mock://') || dbUrl.includes('localhost:51213')) {
   isMock = true;

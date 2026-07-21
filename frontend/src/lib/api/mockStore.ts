@@ -165,6 +165,32 @@ export function generateMockStore() {
       odds.push({ id: `o-${oddsId++}`, matchId: matchObj.id, market: 'BTTS', selection: 'Sim', odd: parseFloat((1.65 + Math.random() * 0.2).toFixed(2)), bookmaker: 'Bet365' });
       odds.push({ id: `o-${oddsId++}`, matchId: matchObj.id, market: 'BTTS', selection: 'Não', odd: parseFloat((1.90 + Math.random() * 0.3).toFixed(2)), bookmaker: 'Bet365' });
 
+      // Estatísticas
+      stats.push({
+        matchId: matchObj.id,
+        teamId: homeTeamId,
+        xg: parseFloat((1.2 + Math.random() * 0.4).toFixed(2)),
+        goalsFor: 25 + Math.floor(Math.random() * 15),
+        shots: 250 + Math.floor(Math.random() * 80),
+        shotsOnTarget: 90 + Math.floor(Math.random() * 30),
+        possession: 52 + Math.floor(Math.random() * 6),
+        corners: 120 + Math.floor(Math.random() * 40),
+        cards: 40 + Math.floor(Math.random() * 20),
+        matches: 20
+      });
+      stats.push({
+        matchId: matchObj.id,
+        teamId: awayTeamId,
+        xg: parseFloat((1.0 + Math.random() * 0.4).toFixed(2)),
+        goalsFor: 22 + Math.floor(Math.random() * 15),
+        shots: 220 + Math.floor(Math.random() * 80),
+        shotsOnTarget: 75 + Math.floor(Math.random() * 30),
+        possession: 48 - Math.floor(Math.random() * 6),
+        corners: 100 + Math.floor(Math.random() * 40),
+        cards: 45 + Math.floor(Math.random() * 20),
+        matches: 20
+      });
+
       // Escalações
       const positions = ['Goleiro', 'Zagueiro', 'Lateral', 'Meio-Campo', 'Atacante'];
       for (let k = 1; k <= 11; k++) {

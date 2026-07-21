@@ -180,7 +180,7 @@ export default function MatchesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[900px] text-left border-collapse">
               <thead>
                 <tr className="bg-[#0e1420] text-slate-400 border-b border-[#1f293d]">
                   <th className="py-4 px-6 text-xs font-bold uppercase tracking-wider">Horário / Liga</th>

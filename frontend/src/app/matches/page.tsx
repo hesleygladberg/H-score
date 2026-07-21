@@ -36,25 +36,37 @@ export default function MatchesPage() {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }).split('/').reverse().join('-')
+  );
+  
   // Filtros
   const [selectedLeague, setSelectedLeague] = useState<string>('Todos');
   const [minEV, setMinEV] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Ligas
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchLeagues = async () => {
       try {
-        setLoading(true);
-        // Buscar ligas
         const resLeagues = await fetch('/api/leagues');
         if (resLeagues.ok) {
           const dataLeagues = await resLeagues.json();
           setLeagues(dataLeagues);
         }
+      } catch (error) {
+        console.error('Erro ao buscar ligas:', error);
+      }
+    };
+    fetchLeagues();
+  }, []);
 
-        // Buscar jogos de hoje
-        const todayStr = new Date().toISOString().split('T')[0];
-        const resMatches = await fetch(`/api/matches?date=${todayStr}`);
+  // Jogos
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        setLoading(true);
+        const resMatches = await fetch(`/api/matches?date=${selectedDate}`);
         if (resMatches.ok) {
           const dataMatches = await resMatches.json();
           setMatches(dataMatches);
@@ -65,9 +77,8 @@ export default function MatchesPage() {
         setLoading(false);
       }
     };
-
-    fetchData();
-  }, []);
+    fetchMatches();
+  }, [selectedDate]);
 
   // Filtragem local
   const filteredMatches = matches.filter(match => {
@@ -89,9 +100,14 @@ export default function MatchesPage() {
           <h2 className="text-2xl font-black text-white tracking-tight">Jogos de Hoje</h2>
           <p className="text-sm text-slate-400 mt-1">Grade completa de jogos do dia analisados pelo modelo matemático</p>
         </div>
-        <div className="flex items-center space-x-2 text-xs text-slate-400 font-semibold bg-[#131a26] border border-[#1f293d] rounded-lg px-3 py-2">
+        <div className="flex items-center space-x-2 text-xs text-slate-400 font-semibold bg-[#131a26] border border-[#1f293d] rounded-lg px-3 py-1.5">
           <Calendar className="h-4 w-4 text-[#10b981]" />
-          <span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="bg-transparent border-none text-slate-300 font-bold text-xs focus:outline-none cursor-pointer scheme-dark"
+          />
         </div>
       </div>
 

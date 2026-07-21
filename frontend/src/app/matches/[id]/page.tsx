@@ -14,6 +14,7 @@ import {
   DollarSign,
   AlertCircle
 } from 'lucide-react';
+import TeamLogo from '@/components/TeamLogo';
 
 interface MatchDetails {
   id: number;
@@ -194,7 +195,7 @@ export default function MatchDetailsPage() {
             {/* Time Casa */}
             <div className="flex-1 flex flex-col items-center">
               <div className="h-16 w-16 md:h-20 md:w-20 bg-[#1e293b]/20 border border-[#1f293d] rounded-full flex items-center justify-center p-3">
-                <img src={matchData.homeTeam.logo} alt={matchData.homeTeam.name} className="h-full w-full object-contain" />
+                <TeamLogo logoUrl={matchData.homeTeam.logo} teamName={matchData.homeTeam.name} size={64} className="h-full w-full" />
               </div>
               <h3 className="text-sm md:text-lg font-extrabold text-white mt-3 text-center">{matchData.homeTeam.name}</h3>
             </div>
@@ -220,7 +221,7 @@ export default function MatchDetailsPage() {
             {/* Time Fora */}
             <div className="flex-1 flex flex-col items-center">
               <div className="h-16 w-16 md:h-20 md:w-20 bg-[#1e293b]/20 border border-[#1f293d] rounded-full flex items-center justify-center p-3">
-                <img src={matchData.awayTeam.logo} alt={matchData.awayTeam.name} className="h-full w-full object-contain" />
+                <TeamLogo logoUrl={matchData.awayTeam.logo} teamName={matchData.awayTeam.name} size={64} className="h-full w-full" />
               </div>
               <h3 className="text-sm md:text-lg font-extrabold text-white mt-3 text-center">{matchData.awayTeam.name}</h3>
             </div>
@@ -661,7 +662,7 @@ export default function MatchDetailsPage() {
               {/* Home Team */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 pb-2 border-b border-[#1f293d]">
-                  <img src={matchData.homeTeam.logo} alt="" className="h-5 w-5 object-contain" />
+                  <TeamLogo logoUrl={matchData.homeTeam.logo} teamName={matchData.homeTeam.name} size={20} className="h-5 w-5" />
                   <h5 className="font-extrabold text-white">{matchData.homeTeam.name}</h5>
                 </div>
                 
@@ -695,7 +696,7 @@ export default function MatchDetailsPage() {
               {/* Away Team */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 pb-2 border-b border-[#1f293d]">
-                  <img src={matchData.awayTeam.logo} alt="" className="h-5 w-5 object-contain" />
+                  <TeamLogo logoUrl={matchData.awayTeam.logo} teamName={matchData.awayTeam.name} size={20} className="h-5 w-5" />
                   <h5 className="font-extrabold text-white">{matchData.awayTeam.name}</h5>
                 </div>
                 

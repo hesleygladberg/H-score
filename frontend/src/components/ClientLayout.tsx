@@ -157,7 +157,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5">
+            <div className="hidden sm:flex items-center space-x-2 bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5">
               <TrendingUp className={`h-4 w-4 ${bankrollData.profit >= 0 ? 'text-[#10b981]' : 'text-red-500'}`} />
               <div>
                 <p className="text-[10px] text-slate-500 font-bold uppercase leading-none">Lucro</p>
@@ -167,7 +167,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5">
+            <div className="hidden sm:flex items-center space-x-2 bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5">
               <Percent className={`h-4 w-4 ${bankrollData.roi >= 0 ? 'text-[#10b981]' : 'text-red-500'}`} />
               <div>
                 <p className="text-[10px] text-slate-500 font-bold uppercase leading-none">ROI</p>
@@ -180,7 +180,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </header>
 
         {/* Dynamic Content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
           {children}
         </main>
       </div>

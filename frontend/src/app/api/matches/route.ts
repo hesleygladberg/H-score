@@ -20,15 +20,8 @@ export async function GET(request: Request) {
     const results = [];
 
     for (const match of filteredMatches) {
-      // Obter histórico de confrontos recentes para calibração
-      let history: any[] = [];
-      try {
-        const homeHistory = await getRealTeamHistory(match.homeTeamId);
-        const awayHistory = await getRealTeamHistory(match.awayTeamId);
-        history = [...homeHistory, ...awayHistory];
-      } catch (err) {
-        console.warn(`Erro ao obter histórico para partida ${match.id}:`, err);
-      }
+      // Dixon-Coles sem estourar o limite de 10 req/min da API gratuita
+      const history: any[] = [];
 
       // Calcular predições matemáticas Dixon-Coles
       const pred = calculateDixonColesPrediction(match.homeTeam, match.awayTeam, history);

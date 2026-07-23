@@ -15,14 +15,7 @@ export async function GET(request: Request) {
     const opportunities: any[] = [];
 
     for (const match of scheduledMatches) {
-      let history: any[] = [];
-      try {
-        const homeHistory = await getRealTeamHistory(match.homeTeamId);
-        const awayHistory = await getRealTeamHistory(match.awayTeamId);
-        history = [...homeHistory, ...awayHistory];
-      } catch (err) {
-        // Ignorar
-      }
+      const history: any[] = [];
 
       // Predição Dixon-Coles
       const pred = calculateDixonColesPrediction(match.homeTeam, match.awayTeam, history);

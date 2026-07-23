@@ -237,22 +237,20 @@ export default function MatchDetailsPage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="border-b border-[#1f293d] overflow-x-auto flex scrollbar-none">
-        <div className="flex space-x-1 p-1 bg-[#131a26] border border-[#1f293d] rounded-xl">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-xs md:text-sm font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-[#10b981] text-[#0b0f19] shadow-md shadow-[#10b981]/15'
-                  : 'text-slate-400 hover:text-white hover:bg-[#1e293b]/40'
-              }`}
-            >
-              {tab.name}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#131a26] border border-[#1f293d] rounded-xl">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-3 py-1.5 text-xs md:text-sm font-bold rounded-lg transition-all cursor-pointer flex-1 text-center min-w-[100px] md:min-w-0 ${
+              activeTab === tab.id
+                ? 'bg-[#10b981] text-[#0b0f19] shadow-md shadow-[#10b981]/15'
+                : 'text-slate-400 hover:text-white hover:bg-[#1e293b]/40'
+            }`}
+          >
+            {tab.name}
+          </button>
+        ))}
       </div>
 
       {/* Tab Contents */}

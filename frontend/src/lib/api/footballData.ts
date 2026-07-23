@@ -59,25 +59,28 @@ export const LEAGUES_MAP: Record<string, { id: number; code: string; name: strin
   'BL1': { id: 2002, code: 'BL1', name: 'Bundesliga', country: 'Germany' },
   'PD': { id: 2014, code: 'PD', name: 'La Liga', country: 'Spain' },
   'SA': { id: 2019, code: 'SA', name: 'Serie A', country: 'Italy' },
-  'BSA': { id: 2013, code: 'BSA', name: 'Campeonato Brasileiro Série A', country: 'Brazil' }
+  'BSA': { id: 2013, code: 'BSA', name: 'Campeonato Brasileiro Série A', country: 'Brazil' },
+  'CL': { id: 2001, code: 'CL', name: 'UEFA Champions League', country: 'Europe' },
+  'FL1': { id: 2015, code: 'FL1', name: 'Ligue 1', country: 'France' },
+  'DED': { id: 2003, code: 'DED', name: 'Eredivisie', country: 'Netherlands' },
+  'PPL': { id: 2017, code: 'PPL', name: 'Primeira Liga', country: 'Portugal' },
+  'ELC': { id: 2016, code: 'ELC', name: 'Championship', country: 'England' },
+  'CLI': { id: 2152, code: 'CLI', name: 'Copa Libertadores', country: 'South America' }
 };
 
 export async function getRealLeagues() {
   const data = await fetchWithCache('/competitions');
   
-  if (!data || !data.competitions) {
+  if (!data || !data.competitions || data.competitions.length === 0) {
     // Fallback Mock
     return mockStore.leagues;
   }
 
-  // Filtrar apenas as nossas ligas suportadas
-  const supportedCodes = Object.keys(LEAGUES_MAP);
-  const filtered = data.competitions.filter((comp: any) => supportedCodes.includes(comp.code));
-
-  return filtered.map((comp: any) => ({
+  // Mapear competições retornadas
+  return data.competitions.map((comp: any) => ({
     id: comp.id,
     name: comp.name,
-    country: comp.area.name,
+    country: comp.area?.name || 'Internacional',
     season: comp.currentSeason?.startDate ? new Date(comp.currentSeason.startDate).getFullYear().toString() : '2026'
   }));
 }
@@ -88,12 +91,18 @@ export async function getRealMatchesToday(dateStr?: string) {
   const endpoint = `/matches?dateFrom=${targetDate}&dateTo=${targetDate}`;
   const data = await fetchWithCache(endpoint);
 
-  if (!data || !data.matches) {
+  const isRealData = data && Array.isArray(data.matches) && data.matches.length > 0;
+
+  if (!isRealData) {
     // Fallback Mock
-    return mockStore.matches.filter((m: any) => {
+    const mockMatches = mockStore.matches.filter((m: any) => {
       const mDate = m.date.toISOString().split('T')[0];
       return mDate === targetDate;
-    }).map(m => {
+    });
+
+    const targetList = mockMatches.length > 0 ? mockMatches : mockStore.matches.slice(0, 10);
+
+    return targetList.map(m => {
       const league = mockStore.leagues.find(l => l.id === m.leagueId);
       return {
         id: m.id,
@@ -108,16 +117,13 @@ export async function getRealMatchesToday(dateStr?: string) {
         awayGoals: m.awayGoals,
         homeTeamId: m.homeTeamId,
         awayTeamId: m.awayTeamId,
-        leagueId: m.leagueId
+        leagueId: m.leagueId,
+        isMockData: true
       };
     });
   }
 
-  // Filtrar partidas das ligas suportadas
-  const supportedIds = Object.values(LEAGUES_MAP).map(l => l.id);
-  const filteredMatches = data.matches.filter((m: any) => supportedIds.includes(m.competition.id));
-
-  return filteredMatches.map((m: any) => {
+  return data.matches.map((m: any) => {
     // Formatar horário
     const matchDate = new Date(m.utcDate);
     const time = matchDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
@@ -125,17 +131,18 @@ export async function getRealMatchesToday(dateStr?: string) {
     return {
       id: m.id,
       time,
-      league: m.competition.name,
-      homeTeam: m.homeTeam.name,
-      awayTeam: m.awayTeam.name,
-      homeLogo: m.homeTeam.crest || '',
-      awayLogo: m.awayTeam.crest || '',
+      league: m.competition?.name || 'Competição',
+      homeTeam: m.homeTeam?.name || 'Time Mandante',
+      awayTeam: m.awayTeam?.name || 'Time Visitante',
+      homeLogo: m.homeTeam?.crest || '',
+      awayLogo: m.awayTeam?.crest || '',
       status: m.status === 'TIMED' || m.status === 'SCHEDULED' ? 'NS' : m.status === 'FINISHED' ? 'FT' : 'LIVE',
       homeGoals: m.score?.fullTime?.home !== undefined ? m.score.fullTime.home : null,
       awayGoals: m.score?.fullTime?.away !== undefined ? m.score.fullTime.away : null,
-      homeTeamId: m.homeTeam.id,
-      awayTeamId: m.awayTeam.id,
-      leagueId: m.competition.id
+      homeTeamId: m.homeTeam?.id,
+      awayTeamId: m.awayTeam?.id,
+      leagueId: m.competition?.id,
+      isMockData: false
     };
   });
 }
@@ -170,8 +177,27 @@ export async function getRealMatchDetails(matchId: number) {
     const lineups = mockStore.lineups.filter(l => l.matchId === matchId);
     // Estatísticas Mockadas
     const stats = mockStore.stats.filter(s => s.matchId === matchId);
-    const homeStats = stats.find(s => s.teamId === homeTeam.id) || null;
-    const awayStats = stats.find(s => s.teamId === awayTeam.id) || null;
+    
+    const createDefaultStats = (tId: number) => ({
+      teamId: tId,
+      season: '2026',
+      matches: 20,
+      wins: 10,
+      draws: 5,
+      losses: 5,
+      goalsFor: 32,
+      goalsAgainst: 22,
+      xg: 1.35,
+      xga: 1.05,
+      shots: 240,
+      shotsOnTarget: 80,
+      possession: 52,
+      corners: 110,
+      cards: 35
+    });
+
+    const homeStats = stats.find(s => s.teamId === homeTeam.id) || createDefaultStats(homeTeam.id);
+    const awayStats = stats.find(s => s.teamId === awayTeam.id) || createDefaultStats(awayTeam.id);
 
     // Odds Mockadas
     const matchOdds = mockStore.odds.filter(o => o.matchId === matchId);

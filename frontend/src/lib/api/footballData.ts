@@ -10,7 +10,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos em milissegundos
 const cache = new Map<string, { data: any; timestamp: number }>();
 
 async function fetchWithCache(endpoint: string): Promise<any> {
-  const apiKey = process.env.FOOTBALL_DATA_API_KEY;
+  const apiKey = process.env.FOOTBALL_DATA_API_KEY || '05d2bbcf33af41a0a19422e107c7a78d';
   
   // Se não houver chave de API, retorna null para ativar o fallback Mock automaticamente
   if (!apiKey || apiKey === 'your_api_key_here') {

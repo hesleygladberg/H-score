@@ -1,34 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b0f19;
+  --background: #090d16;
   --foreground: #f8fafc;
-  --card: #131a26;
-  --card-border: #1f293d;
-  --primary: #10b981; /* Verde esmeralda para EV+ */
+  --card: #111827;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --primary: #10b981;
+  --accent-lime: #8ff38f;
   --primary-hover: #059669;
-  --accent: #3b82f6; /* Azul para odds e links */
-  --warning: #f59e0b; /* Amarelo */
+  --warning: #f59e0b;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: #090d16;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #1f293d;
   border-radius: 4px;
 }
 
@@ -36,13 +37,23 @@ body {
   background: #10b981;
 }
 
-/* Glassmorphism custom classes */
+/* CSCORE Design Utility Classes */
 .glass-panel {
-  background: rgba(19, 26, 38, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(31, 41, 61, 0.5);
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.glow-primary {
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+.glow-lime {
+  box-shadow: 0 0 20px rgba(143, 243, 143, 0.2);
+}
+
+.text-gradient-lime {
+  background: linear-gradient(135deg, #8ff38f 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-radial-cscore {
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74, 222, 128, 0.06) 0%, transparent 75%);
 }

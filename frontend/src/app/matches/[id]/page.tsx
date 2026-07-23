@@ -72,10 +72,11 @@ export default function MatchDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Estados do Dutching
+  // Estados do Dutching & Odds Personalizadas
   const [selectedScores, setSelectedScores] = useState<string[]>([]);
   const [dutchingStake, setDutchingStake] = useState<string>('100');
   const [dutchingResult, setDutchingResult] = useState<any | null>(null);
+  const [customOdds, setCustomOdds] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -98,7 +99,23 @@ export default function MatchDetailsPage() {
     }
   }, [matchId]);
 
-  // Efeito para recalcular o Dutching sempre que a seleção de placares ou a stake mudarem
+  // Placares Exatos ordenados por EV Decrescente (+EV no topo)
+  const sortedCorrectScores = React.useMemo(() => {
+    if (!matchData?.correctScores) return [];
+
+    return matchData.correctScores.map(cs => {
+      const currentOdd = customOdds[cs.score] !== undefined ? customOdds[cs.score] : cs.marketOdd;
+      const ev = ((cs.probability / 100) * currentOdd) - 1.0;
+
+      return {
+        ...cs,
+        marketOdd: currentOdd,
+        ev: parseFloat((ev * 100).toFixed(1))
+      };
+    }).sort((a, b) => b.ev - a.ev);
+  }, [matchData, customOdds]);
+
+  // Efeito para recalcular o Dutching com odds customizadas
   useEffect(() => {
     if (!matchData || selectedScores.length === 0) {
       setDutchingResult(null);
@@ -107,13 +124,14 @@ export default function MatchDetailsPage() {
 
     const calculateDutching = async () => {
       try {
-        // Encontrar as seleções correspondentes no correctScores
         const selections = selectedScores.map(scoreStr => {
-          const cs = matchData.correctScores.find(item => item.score === scoreStr);
+          const cs = sortedCorrectScores.find(item => item.score === scoreStr);
+          const currentOdd = customOdds[scoreStr] !== undefined ? customOdds[scoreStr] : (cs ? cs.marketOdd : 10.0);
+          const prob = cs ? cs.probability / 100 : 0.05;
           return {
             score: scoreStr,
-            odd: cs ? cs.marketOdd : 10.0,
-            probability: cs ? cs.probability / 100 : 0.05
+            odd: currentOdd,
+            probability: prob
           };
         });
 
@@ -136,7 +154,7 @@ export default function MatchDetailsPage() {
     };
 
     calculateDutching();
-  }, [selectedScores, dutchingStake, matchData]);
+  }, [selectedScores, dutchingStake, matchData, customOdds, sortedCorrectScores]);
 
   if (loading) {
     return <div className="text-center text-slate-500 py-24">Processando base histórica e simulando partida...</div>;
@@ -164,8 +182,7 @@ export default function MatchDetailsPage() {
     { id: 'overview', name: 'Visão Geral' },
     { id: 'overunder', name: 'Over/Under' },
     { id: 'btts', name: 'BTTS' },
-    { id: 'correctscore', name: 'Correct Score' },
-    { id: 'dutching', name: 'Dutching' },
+    { id: 'correctscore', name: 'Placares Exatos (Dutching)' },
     { id: 'lineups', name: 'Escalações' },
     { id: 'stats', name: 'Estatísticas' },
     { id: 'h2h', name: 'H2H' }
@@ -504,146 +521,206 @@ export default function MatchDetailsPage() {
           </div>
         )}
 
-        {/* 4. Correct Score */}
+        {/* 4. Placares Exatos & Dutching Integrado */}
         {activeTab === 'correctscore' && (
           <div className="space-y-6">
-            <div className="mb-4">
-              <h4 className="text-base font-bold text-white">Mercado de Placares Exatos (Correct Score)</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Top 20 placares mais prováveis a partir das simulações de Monte Carlo</p>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#0e1420] text-slate-400 border-b border-[#1f293d]">
-                    <th className="py-3 px-5 text-xs font-bold uppercase">Placar</th>
-                    <th className="py-3 px-5 text-xs font-bold uppercase text-center">Probabilidade Real</th>
-                    <th className="py-3 px-5 text-xs font-bold uppercase text-center">Odd Justa</th>
-                    <th className="py-3 px-5 text-xs font-bold uppercase text-center">Odd de Mercado</th>
-                    <th className="py-3 px-5 text-xs font-bold uppercase text-right">EV esperado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1f293d]">
-                  {matchData.correctScores.map((cs, idx) => (
-                    <tr key={idx} className="hover:bg-[#1e293b]/10">
-                      <td className="py-3.5 px-5 text-sm font-bold text-white">{cs.score}</td>
-                      <td className="py-3.5 px-5 text-sm font-semibold text-center">{cs.probability}%</td>
-                      <td className="py-3.5 px-5 text-sm font-medium text-slate-400 text-center">@{cs.fairOdd.toFixed(2)}</td>
-                      <td className="py-3.5 px-5 text-sm font-semibold text-center text-slate-300">@{cs.marketOdd.toFixed(2)}</td>
-                      <td className="py-3.5 px-5 text-sm text-right whitespace-nowrap">
-                        {cs.ev > 0 ? (
-                          <span className="text-[#10b981] font-bold">+{cs.ev.toFixed(1)}% EV</span>
-                        ) : (
-                          <span className="text-slate-500">Sem valor</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* 5. Dutching */}
-        {activeTab === 'dutching' && (
-          <div className="space-y-6">
-            <div className="mb-4">
-              <h4 className="text-base font-bold text-white">Calculadora e Painel de Dutching</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Selecione múltiplos placares para simular uma aposta distribuída com lucro igualitário</p>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Seleção de Placares */}
-              <div className="bg-[#1e293b]/10 border border-[#1f293d] rounded-xl p-5 lg:col-span-2">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">Escolha os placares do Dutching</p>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                  {matchData.correctScores.map((cs, idx) => {
-                    const isSelected = selectedScores.includes(cs.score);
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => toggleScoreSelection(cs.score)}
-                        className={`p-3 rounded-xl border text-center transition-all duration-150 cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#10b981]/15 border-[#10b981] text-white shadow-md shadow-[#10b981]/5'
-                            : 'bg-[#1e293b]/40 border-[#1f293d] text-slate-400 hover:border-slate-600 hover:text-white'
-                        }`}
-                      >
-                        <p className="text-sm font-extrabold">{cs.score}</p>
-                        <p className="text-[10px] text-slate-500 font-semibold mt-1">@{cs.marketOdd.toFixed(1)}</p>
-                      </button>
-                    );
-                  })}
-                </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-[#1f293d]">
+              <div>
+                <h4 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>Mercado de Placares Exatos & Dutching</span>
+                  <span className="text-[10px] font-bold uppercase bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 px-2 py-0.5 rounded-full">
+                    Ordem Decrescente de EV
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Placares ordenados do maior EV (+EV no topo) ao menor. Edite as odds do seu bookmaker e selecione os placares para ativar a Calculadora Dutching.
+                </p>
               </div>
 
-              {/* Resultados do Dutching */}
-              <div className="bg-[#1e293b]/20 border border-[#1f293d] rounded-xl p-5 space-y-4">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Simulação e Resultados</p>
-                
-                {/* Input de Stake */}
+              {/* Stake & Controls */}
+              <div className="flex items-center space-x-3 bg-[#1e293b]/30 border border-[#1f293d] rounded-xl p-2.5">
                 <div>
-                  <label className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Stake Total (R$)</label>
+                  <span className="block text-[10px] text-slate-400 font-bold uppercase">Investimento (R$)</span>
                   <input
                     type="number"
                     value={dutchingStake}
                     onChange={(e) => setDutchingStake(e.target.value)}
-                    className="w-full bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-[#10b981]"
-                    placeholder="100.00"
+                    className="w-24 bg-[#0b0f19] border border-[#1f293d] rounded-lg px-2.5 py-1 text-xs text-white font-bold focus:outline-none focus:border-[#10b981]"
                   />
                 </div>
+                {selectedScores.length > 0 && (
+                  <button
+                    onClick={() => setSelectedScores([])}
+                    className="text-xs text-slate-400 hover:text-red-400 font-semibold px-2 py-1 transition cursor-pointer"
+                  >
+                    Limpar ({selectedScores.length})
+                  </button>
+                )}
+              </div>
+            </div>
 
-                {dutchingResult ? (
-                  <div className="space-y-4 pt-2">
-                    {/* Resumos Estatísticos */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-[#0e1420] border border-[#1f293d] p-3 rounded-lg text-center">
-                        <p className="text-[9px] text-slate-500 font-bold uppercase">ROI Estimado</p>
-                        <p className={`text-sm font-extrabold mt-1 ${dutchingResult.roi >= 0 ? 'text-[#10b981]' : 'text-red-500'}`}>
-                          {(dutchingResult.roi * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="bg-[#0e1420] border border-[#1f293d] p-3 rounded-lg text-center">
-                        <p className="text-[9px] text-slate-500 font-bold uppercase">Valor EV</p>
-                        <p className={`text-sm font-extrabold mt-1 ${dutchingResult.ev >= 0 ? 'text-[#10b981]' : 'text-red-500'}`}>
-                          {(dutchingResult.ev * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="bg-[#0e1420] border border-[#1f293d] p-3 rounded-lg text-center">
-                        <p className="text-[9px] text-slate-500 font-bold uppercase">Cobertura Real</p>
-                        <p className="text-sm font-extrabold text-white mt-1">
-                          {(dutchingResult.coverage * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="bg-[#0e1420] border border-[#1f293d] p-3 rounded-lg text-center">
-                        <p className="text-[9px] text-slate-500 font-bold uppercase">Lucro Líquido</p>
-                        <p className={`text-sm font-extrabold mt-1 ${dutchingResult.netProfit >= 0 ? 'text-[#10b981]' : 'text-red-500'}`}>
-                          R$ {dutchingResult.netProfit.toFixed(2)}
-                        </p>
-                      </div>
+            {/* Painel do Calculador Dutching (Exibido quando houver placares selecionados) */}
+            {selectedScores.length > 0 && (
+              <div className="bg-[#0b0f19]/80 border border-[#10b981]/40 rounded-2xl p-5 shadow-xl shadow-[#10b981]/5 relative overflow-hidden space-y-4">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#10b981]/5 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1f293d] pb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-[#10b981]/15 border border-[#10b981]/30 rounded-xl flex items-center justify-center">
+                      <DollarSign className="h-5 w-5 text-[#8ff38f]" />
                     </div>
-
-                    {/* Distribuição Individual */}
-                    <div className="space-y-2 pt-2 border-t border-[#1f293d]">
-                      <p className="text-[10px] text-slate-500 font-bold uppercase">Distribuição das Stakes</p>
-                      <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
-                        {dutchingResult.selections.map((sel: any, idx: number) => (
-                          <div key={idx} className="flex justify-between items-center text-xs p-2 bg-[#0e1420]/55 rounded border border-[#1f293d]">
-                            <span className="font-bold text-white">{sel.score} (@{sel.odd})</span>
-                            <span className="text-slate-300">R$ {sel.individualStake} ({sel.pctOfTotal}%)</span>
-                          </div>
-                        ))}
-                      </div>
+                    <div>
+                      <h5 className="text-sm font-extrabold text-white">Calculadora Dutching Integrada</h5>
+                      <p className="text-xs text-slate-400">{selectedScores.length} placares selecionados para distribuição igualitária de banca</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-10 text-slate-500 text-xs">
-                    <Info className="h-6 w-6 mx-auto text-slate-600 mb-2" />
-                    Selecione pelo menos um placar na tabela para visualizar a distribuição de stakes.
+
+                  {dutchingResult && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5 text-center">
+                        <span className="block text-[9px] text-slate-500 font-bold uppercase">Odd Combinada</span>
+                        <span className="text-xs font-black text-white">@{dutchingResult.combinedOdds || (dutchingResult.ev ? (1.0 / (dutchingResult.coverage || 0.1)).toFixed(2) : '---')}</span>
+                      </div>
+                      <div className="bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5 text-center">
+                        <span className="block text-[9px] text-slate-500 font-bold uppercase">EV do Dutching</span>
+                        <span className={`text-xs font-black ${(dutchingResult.ev || 0) >= 0 ? 'text-[#8ff38f]' : 'text-[#f59e0b]'}`}>
+                          {(dutchingResult.ev || 0) >= 0 ? `+${((dutchingResult.ev || 0) * 100).toFixed(1)}%` : `${((dutchingResult.ev || 0) * 100).toFixed(1)}%`}
+                        </span>
+                      </div>
+                      <div className="bg-[#10b981]/10 border border-[#10b981]/30 rounded-lg px-3 py-1.5 text-center">
+                        <span className="block text-[9px] text-[#8ff38f] font-bold uppercase">Retorno Bruto</span>
+                        <span className="text-xs font-black text-[#8ff38f]">R$ {dutchingResult.expectedReturn ? dutchingResult.expectedReturn.toFixed(2) : (dutchingResult.totalStake + (dutchingResult.netProfit || 0)).toFixed(2)}</span>
+                      </div>
+                      <div className="bg-[#10b981]/10 border border-[#10b981]/30 rounded-lg px-3 py-1.5 text-center">
+                        <span className="block text-[9px] text-[#8ff38f] font-bold uppercase">Lucro Líquido</span>
+                        <span className={`text-xs font-black ${(dutchingResult.netProfit || 0) >= 0 ? 'text-[#8ff38f]' : 'text-red-400'}`}>
+                          R$ {(dutchingResult.netProfit || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tabela de Stakes do Dutching */}
+                {dutchingResult?.selections && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="text-slate-400 border-b border-[#1f293d]">
+                          <th className="py-2 px-3 font-bold uppercase">Placar Selecionado</th>
+                          <th className="py-2 px-3 font-bold uppercase text-center">Odd Mercado</th>
+                          <th className="py-2 px-3 font-bold uppercase text-center">Aposta Recomendada (R$)</th>
+                          <th className="py-2 px-3 font-bold uppercase text-right">Retorno se Bater</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#1f293d]/50">
+                        {dutchingResult.selections.map((st: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-[#1e293b]/20">
+                            <td className="py-2.5 px-3 font-bold text-white flex items-center space-x-2">
+                              <span className="h-2 w-2 rounded-full bg-[#10b981]"></span>
+                              <span>Placar {st.score}</span>
+                            </td>
+                            <td className="py-2.5 px-3 font-bold text-slate-300 text-center">@{st.odd}</td>
+                            <td className="py-2.5 px-3 font-extrabold text-[#8ff38f] text-center bg-[#10b981]/10 rounded">
+                              R$ {st.individualStake} ({st.pctOfTotal}%)
+                            </td>
+                            <td className="py-2.5 px-3 font-bold text-white text-right">
+                              R$ {(parseFloat(st.individualStake) * st.odd).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Tabela Principal de Placares Exatos (Ordem Decrescente de EV) */}
+            <div className="overflow-x-auto rounded-xl border border-[#1f293d]">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#0e1420] text-slate-400 border-b border-[#1f293d]">
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center w-14">Dutch</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase">Placar Exato</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">Probabilidade Real</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">Odd Justa</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">Odd Mercado (Editável)</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-right">Valor Esperado (EV)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1f293d] bg-[#131a26]">
+                  {sortedCorrectScores.map((cs, idx) => {
+                    const isSelected = selectedScores.includes(cs.score);
+                    return (
+                      <tr 
+                        key={idx} 
+                        className={`transition-colors ${
+                          isSelected ? 'bg-[#10b981]/10 hover:bg-[#10b981]/15' : 'hover:bg-[#1e293b]/20'
+                        }`}
+                      >
+                        {/* Checkbox Dutching */}
+                        <td className="py-3 px-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleScoreSelection(cs.score)}
+                            className="h-4 w-4 rounded border-[#1f293d] text-[#10b981] focus:ring-[#10b981] focus:ring-offset-[#0b0f19] cursor-pointer"
+                          />
+                        </td>
+                        
+                        {/* Placar */}
+                        <td className="py-3 px-4 text-sm font-black text-white">
+                          {cs.score}
+                        </td>
+
+                        {/* Probabilidade */}
+                        <td className="py-3 px-4 text-sm font-bold text-center text-slate-200">
+                          {cs.probability}%
+                        </td>
+
+                        {/* Odd Justa */}
+                        <td className="py-3 px-4 text-sm font-medium text-slate-400 text-center">
+                          @{cs.fairOdd.toFixed(2)}
+                        </td>
+
+                        {/* Odd de Mercado Editável */}
+                        <td className="py-3 px-4 text-center">
+                          <div className="inline-flex items-center space-x-1 bg-[#0b0f19] border border-[#1f293d] focus-within:border-[#10b981] rounded-lg px-2.5 py-1">
+                            <span className="text-xs font-bold text-slate-500">@</span>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={customOdds[cs.score] !== undefined ? customOdds[cs.score] : cs.marketOdd}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                setCustomOdds(prev => ({
+                                  ...prev,
+                                  [cs.score]: isNaN(val) ? 1.01 : val
+                                }));
+                              }}
+                              className="w-16 bg-transparent text-sm font-extrabold text-white text-center focus:outline-none"
+                            />
+                          </div>
+                        </td>
+
+                        {/* EV Badge */}
+                        <td className="py-3 px-4 text-sm text-right whitespace-nowrap font-bold">
+                          {cs.ev > 0 ? (
+                            <span className="bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 font-black px-2.5 py-1 rounded-md">
+                              +{cs.ev.toFixed(1)}% EV
+                            </span>
+                          ) : (
+                            <span className="text-slate-500 font-medium px-2 py-1">
+                              Sem valor
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

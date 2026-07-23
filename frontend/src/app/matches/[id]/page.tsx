@@ -76,7 +76,7 @@ export default function MatchDetailsPage() {
   const [selectedScores, setSelectedScores] = useState<string[]>([]);
   const [dutchingStake, setDutchingStake] = useState<string>('100');
   const [dutchingResult, setDutchingResult] = useState<any | null>(null);
-  const [customOdds, setCustomOdds] = useState<Record<string, number>>({});
+  const [customOddInputs, setCustomOddInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -99,21 +99,37 @@ export default function MatchDetailsPage() {
     }
   }, [matchId]);
 
-  // Placares Exatos ordenados por EV Decrescente (+EV no topo)
-  const sortedCorrectScores = React.useMemo(() => {
+  // Lista de placares com ordem estável baseada no EV inicial e inputs de texto suaves
+  const correctScoresList = React.useMemo(() => {
     if (!matchData?.correctScores) return [];
 
-    return matchData.correctScores.map(cs => {
-      const currentOdd = customOdds[cs.score] !== undefined ? customOdds[cs.score] : cs.marketOdd;
+    const baseList = [...matchData.correctScores].sort((a, b) => b.ev - a.ev);
+
+    return baseList.map(cs => {
+      const inputText = customOddInputs[cs.score];
+      const parsedOdd = inputText !== undefined && inputText.trim() !== '' ? parseFloat(inputText) : cs.marketOdd;
+      const currentOdd = !isNaN(parsedOdd) && parsedOdd > 1.0 ? parsedOdd : cs.marketOdd;
       const ev = ((cs.probability / 100) * currentOdd) - 1.0;
 
       return {
         ...cs,
-        marketOdd: currentOdd,
+        currentOdd,
+        displayOdd: inputText !== undefined ? inputText : cs.marketOdd.toString(),
         ev: parseFloat((ev * 100).toFixed(1))
       };
-    }).sort((a, b) => b.ev - a.ev);
-  }, [matchData, customOdds]);
+    });
+  }, [matchData, customOddInputs]);
+
+  // Pré-selecionar os 8 primeiros placares por padrão
+  useEffect(() => {
+    if (matchData?.correctScores && matchData.correctScores.length > 0 && selectedScores.length === 0) {
+      const top8 = [...matchData.correctScores]
+        .sort((a, b) => b.ev - a.ev)
+        .slice(0, 8)
+        .map(cs => cs.score);
+      setSelectedScores(top8);
+    }
+  }, [matchData]);
 
   // Efeito para recalcular o Dutching com odds customizadas
   useEffect(() => {
@@ -125,8 +141,8 @@ export default function MatchDetailsPage() {
     const calculateDutching = async () => {
       try {
         const selections = selectedScores.map(scoreStr => {
-          const cs = sortedCorrectScores.find(item => item.score === scoreStr);
-          const currentOdd = customOdds[scoreStr] !== undefined ? customOdds[scoreStr] : (cs ? cs.marketOdd : 10.0);
+          const cs = correctScoresList.find(item => item.score === scoreStr);
+          const currentOdd = cs ? cs.currentOdd : 10.0;
           const prob = cs ? cs.probability / 100 : 0.05;
           return {
             score: scoreStr,
@@ -154,7 +170,7 @@ export default function MatchDetailsPage() {
     };
 
     calculateDutching();
-  }, [selectedScores, dutchingStake, matchData, customOdds, sortedCorrectScores]);
+  }, [selectedScores, dutchingStake, matchData, correctScoresList]);
 
   if (loading) {
     return <div className="text-center text-slate-500 py-24">Processando base histórica e simulando partida...</div>;
@@ -650,7 +666,7 @@ export default function MatchDetailsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1f293d] bg-[#131a26]">
-                  {sortedCorrectScores.map((cs, idx) => {
+                  {correctScoresList.map((cs, idx) => {
                     const isSelected = selectedScores.includes(cs.score);
                     return (
                       <tr 
@@ -684,19 +700,18 @@ export default function MatchDetailsPage() {
                           @{cs.fairOdd.toFixed(2)}
                         </td>
 
-                        {/* Odd de Mercado Editável */}
+                        {/* Odd de Mercado Editável (Texto Estável) */}
                         <td className="py-3 px-4 text-center">
                           <div className="inline-flex items-center space-x-1 bg-[#0b0f19] border border-[#1f293d] focus-within:border-[#10b981] rounded-lg px-2.5 py-1">
                             <span className="text-xs font-bold text-slate-500">@</span>
                             <input
-                              type="number"
-                              step="0.1"
-                              value={customOdds[cs.score] !== undefined ? customOdds[cs.score] : cs.marketOdd}
+                              type="text"
+                              value={cs.displayOdd}
                               onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setCustomOdds(prev => ({
+                                const val = e.target.value;
+                                setCustomOddInputs(prev => ({
                                   ...prev,
-                                  [cs.score]: isNaN(val) ? 1.01 : val
+                                  [cs.score]: val
                                 }));
                               }}
                               className="w-16 bg-transparent text-sm font-extrabold text-white text-center focus:outline-none"

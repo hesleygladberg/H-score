@@ -47,12 +47,11 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // 1. Buscar jogos de hoje
-        const todayStr = new Date().toISOString().split('T')[0];
-        const resMatches = await fetch(`/api/matches?date=${todayStr}`);
+        // 1. Buscar jogos de hoje (API Real)
+        const resMatches = await fetch('/api/matches');
         if (resMatches.ok) {
           const dataMatches = await resMatches.json();
-          setMatchesToday(dataMatches);
+          setMatchesToday(Array.isArray(dataMatches) ? dataMatches : []);
         }
 
         // 2. Buscar oportunidades do Scanner

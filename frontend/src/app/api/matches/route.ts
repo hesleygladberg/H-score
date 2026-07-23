@@ -75,7 +75,8 @@ export async function GET(request: Request) {
         awayGoals: match.awayGoals,
         probabilities: pred.probabilities,
         bestMarket,
-        ev: bestEV > 0 ? parseFloat((bestEV * 100).toFixed(1)) : 0
+        ev: bestEV > 0 ? parseFloat((bestEV * 100).toFixed(1)) : 0,
+        isMockData: match.isMockData ?? false
       });
     }
 

@@ -89,12 +89,20 @@ export async function getRealMatchesToday(dateStr?: string) {
   const targetDate = dateStr || new Date().toISOString().split('T')[0];
   // Football-Data.org endpoint de jogos de um intervalo de datas
   const endpoint = `/matches?dateFrom=${targetDate}&dateTo=${targetDate}`;
-  const data = await fetchWithCache(endpoint);
+  let data = await fetchWithCache(endpoint);
+
+  // Se a busca por data exata não trouxer jogos (ex: virada de dia UTC), consulta as próximas partidas reais agendadas
+  if (data && Array.isArray(data.matches) && data.matches.length === 0) {
+    const scheduledData = await fetchWithCache('/matches?status=SCHEDULED');
+    if (scheduledData && Array.isArray(scheduledData.matches) && scheduledData.matches.length > 0) {
+      data = scheduledData;
+    }
+  }
 
   const isRealData = data && Array.isArray(data.matches) && data.matches.length > 0;
 
   if (!isRealData) {
-    // Fallback Mock
+    // Fallback Mock apenas se a API realmente falhar por erro de rede/chave
     const mockMatches = mockStore.matches.filter((m: any) => {
       const mDate = m.date.toISOString().split('T')[0];
       return mDate === targetDate;

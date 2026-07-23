@@ -99,11 +99,11 @@ export default function MatchDetailsPage() {
     }
   }, [matchId]);
 
-  // Lista de placares com ordem estável baseada no EV inicial e inputs de texto suaves
+  // Lista de placares com ordem estável baseada na Probabilidade Real Decrescente
   const correctScoresList = React.useMemo(() => {
     if (!matchData?.correctScores) return [];
 
-    const baseList = [...matchData.correctScores].sort((a, b) => b.ev - a.ev);
+    const baseList = [...matchData.correctScores].sort((a, b) => b.probability - a.probability);
 
     return baseList.map(cs => {
       const inputText = customOddInputs[cs.score];
@@ -120,11 +120,11 @@ export default function MatchDetailsPage() {
     });
   }, [matchData, customOddInputs]);
 
-  // Pré-selecionar os 8 primeiros placares por padrão
+  // Pré-selecionar os 8 placares mais prováveis por padrão
   useEffect(() => {
     if (matchData?.correctScores && matchData.correctScores.length > 0 && selectedScores.length === 0) {
       const top8 = [...matchData.correctScores]
-        .sort((a, b) => b.ev - a.ev)
+        .sort((a, b) => b.probability - a.probability)
         .slice(0, 8)
         .map(cs => cs.score);
       setSelectedScores(top8);
@@ -545,11 +545,11 @@ export default function MatchDetailsPage() {
                 <h4 className="text-base font-bold text-white flex items-center gap-2">
                   <span>Mercado de Placares Exatos & Dutching</span>
                   <span className="text-[10px] font-bold uppercase bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 px-2 py-0.5 rounded-full">
-                    Ordem Decrescente de EV
+                    Ordem Decrescente de Probabilidade Real
                   </span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Placares ordenados do maior EV (+EV no topo) ao menor. Edite as odds do seu bookmaker e selecione os placares para ativar a Calculadora Dutching.
+                  Placares ordenados pela probabilidade real matemática do jogo (maior probabilidade no topo). Edite as odds do seu bookmaker para visualizar o EV exato (+EV ou -EV) e o Dutching.
                 </p>
               </div>
 
@@ -599,7 +599,7 @@ export default function MatchDetailsPage() {
                       </div>
                       <div className="bg-[#1e293b]/40 border border-[#1f293d] rounded-lg px-3 py-1.5 text-center">
                         <span className="block text-[9px] text-slate-500 font-bold uppercase">EV do Dutching</span>
-                        <span className={`text-xs font-black ${(dutchingResult.ev || 0) >= 0 ? 'text-[#8ff38f]' : 'text-[#f59e0b]'}`}>
+                        <span className={`text-xs font-black ${(dutchingResult.ev || 0) >= 0 ? 'text-[#8ff38f]' : 'text-red-400'}`}>
                           {(dutchingResult.ev || 0) >= 0 ? `+${((dutchingResult.ev || 0) * 100).toFixed(1)}%` : `${((dutchingResult.ev || 0) * 100).toFixed(1)}%`}
                         </span>
                       </div>
@@ -652,7 +652,7 @@ export default function MatchDetailsPage() {
               </div>
             )}
 
-            {/* Tabela Principal de Placares Exatos (Ordem Decrescente de EV) */}
+            {/* Tabela Principal de Placares Exatos (Ordem Decrescente de Probabilidade Real) */}
             <div className="overflow-x-auto rounded-xl border border-[#1f293d]">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -719,15 +719,15 @@ export default function MatchDetailsPage() {
                           </div>
                         </td>
 
-                        {/* EV Badge */}
+                        {/* EV Badge: Mostra valor EV real positivo ou negativo */}
                         <td className="py-3 px-4 text-sm text-right whitespace-nowrap font-bold">
-                          {cs.ev > 0 ? (
+                          {cs.ev >= 0 ? (
                             <span className="bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 font-black px-2.5 py-1 rounded-md">
                               +{cs.ev.toFixed(1)}% EV
                             </span>
                           ) : (
-                            <span className="text-slate-500 font-medium px-2 py-1">
-                              Sem valor
+                            <span className="bg-[#1e293b]/50 text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-md">
+                              {cs.ev.toFixed(1)}% EV
                             </span>
                           )}
                         </td>
@@ -737,6 +737,42 @@ export default function MatchDetailsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Barra Pop-up Flutuante de Dutching no Rodapé */}
+            {selectedScores.length > 0 && (
+              <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-4xl bg-[#090d16]/95 border border-[#10b981]/50 shadow-[0_0_40px_rgba(16,185,129,0.25)] backdrop-blur-xl p-3.5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3 text-white">
+                <div className="flex items-center space-x-3">
+                  <div className="h-9 w-9 bg-[#10b981]/20 border border-[#10b981]/40 rounded-xl flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-[#8ff38f]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white">Calculadora Dutching Pop-up ({selectedScores.length} placares)</p>
+                    <p className="text-[10px] text-slate-400">Investimento Total: R$ {parseFloat(dutchingStake) || 100}</p>
+                  </div>
+                </div>
+
+                {dutchingResult && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-center px-2.5 py-1 bg-[#1e293b]/60 rounded-lg border border-[#1f293d]">
+                      <span className="block text-[8px] text-slate-400 font-bold uppercase">Odd Combinada</span>
+                      <span className="text-xs font-black text-white">@{dutchingResult.combinedOdds || (1.0 / (dutchingResult.coverage || 0.1)).toFixed(2)}</span>
+                    </div>
+                    <div className="text-center px-2.5 py-1 bg-[#1e293b]/60 rounded-lg border border-[#1f293d]">
+                      <span className="block text-[8px] text-slate-400 font-bold uppercase">EV Combinado</span>
+                      <span className={`text-xs font-black ${(dutchingResult.ev || 0) >= 0 ? 'text-[#8ff38f]' : 'text-red-400'}`}>
+                        {(dutchingResult.ev || 0) >= 0 ? `+${((dutchingResult.ev || 0) * 100).toFixed(1)}%` : `${((dutchingResult.ev || 0) * 100).toFixed(1)}%`}
+                      </span>
+                    </div>
+                    <div className="text-center px-2.5 py-1 bg-[#10b981]/15 rounded-lg border border-[#10b981]/30">
+                      <span className="block text-[8px] text-[#8ff38f] font-bold uppercase">Lucro Líquido</span>
+                      <span className={`text-xs font-black ${(dutchingResult.netProfit || 0) >= 0 ? 'text-[#8ff38f]' : 'text-red-400'}`}>
+                        R$ {(dutchingResult.netProfit || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

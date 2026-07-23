@@ -158,8 +158,9 @@ export async function getRealMatchesToday(dateStr?: string) {
 // Obter detalhes de um jogo, incluindo o H2H real
 export async function getRealMatchDetails(matchId: number) {
   const data = await fetchWithCache(`/matches/${matchId}`);
+  const m = data?.match || (data?.id ? data : null);
   
-  if (!data || !data.match) {
+  if (!data || !m) {
     // Fallback Mock
     const mockMatch = mockStore.matches.find(m => m.id === matchId);
     if (!mockMatch) return null;
@@ -239,7 +240,6 @@ export async function getRealMatchDetails(matchId: number) {
   }
 
   // Se a chamada da API funcionou
-  const m = data.match;
   const head2head = data.head2head?.matches || [];
   
   const h2hFormatted = head2head.slice(0, 5).map((prev: any) => ({
@@ -337,7 +337,7 @@ export async function getRealMatchDetails(matchId: number) {
   return {
     id: m.id,
     date: m.utcDate,
-    league: m.competition.name,
+    league: m.competition?.name || 'Competição',
     homeTeam: { id: m.homeTeam.id, name: m.homeTeam.name, logo: m.homeTeam.crest || '' },
     awayTeam: { id: m.awayTeam.id, name: m.awayTeam.name, logo: m.awayTeam.crest || '' },
     status: m.status === 'FINISHED' ? 'FT' : m.status === 'TIMED' || m.status === 'SCHEDULED' ? 'NS' : 'LIVE',

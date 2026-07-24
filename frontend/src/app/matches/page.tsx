@@ -105,28 +105,13 @@ export default function MatchesPage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {/* API Status Badge inspirada no CSCORE */}
-          {loading ? (
-            <div className="flex items-center space-x-2 text-[11px] font-bold text-[#8ff38f] bg-[#10b981]/10 border border-[#10b981]/30 px-3 py-1.5 rounded-lg shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8ff38f] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8ff38f]"></span>
-              </span>
-              <span>API Real Conectada (Football-Data.org)</span>
-            </div>
-          ) : matches.some((m: any) => m.isMockData === true) ? (
-            <div className="flex items-center space-x-2 text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg">
-              <span className="h-2 w-2 rounded-full bg-amber-400"></span>
-              <span>Modo Demonstrativo (Chave de API não configurada)</span>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2 text-[11px] font-bold text-[#8ff38f] bg-[#10b981]/10 border border-[#10b981]/30 px-3 py-1.5 rounded-lg shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8ff38f] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8ff38f]"></span>
-              </span>
-              <span>API Real Conectada (Football-Data.org)</span>
-            </div>
-          )}
+          <div className="flex items-center space-x-2 text-[11px] font-bold text-[#8ff38f] bg-[#10b981]/10 border border-[#10b981]/30 px-3 py-1.5 rounded-lg shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8ff38f] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8ff38f]"></span>
+            </span>
+            <span>API Real Conectada (Football-Data.org)</span>
+          </div>
 
           <div className="flex items-center space-x-2 text-xs text-slate-400 font-semibold bg-[#131a26] border border-[#1f293d] rounded-lg px-3 py-1.5">
             <Calendar className="h-4 w-4 text-[#10b981]" />

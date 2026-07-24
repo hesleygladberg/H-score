@@ -12,7 +12,8 @@ import {
   Grid,
   Info,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import TeamLogo from '@/components/TeamLogo';
 
@@ -292,9 +293,14 @@ export default function MatchDetailsPage() {
         {/* 1. Visão Geral */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="mb-4">
-              <h4 className="text-base font-bold text-white">Probabilidades 1X2 (Vitória/Empate/Derrota)</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Comparativo do modelo probabilístico contra as odds vigentes do mercado</p>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h4 className="text-base font-bold text-white flex items-center">
+                  Probabilidades 1X2 (Vitória/Empate/Derrota)
+                  <span className="text-[10px] text-blue-400 font-extrabold bg-blue-950/60 border border-blue-800/60 px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-3">Fonte: Modelo Dixon-Coles & Poisson</span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">Comparativo do modelo probabilístico contra as odds vigentes do mercado</p>
+              </div>
             </div>
             
             {matchData.probabilities ? (
@@ -804,83 +810,61 @@ export default function MatchDetailsPage() {
           </div>
         )}
 
-        {/* 6. Escalações */}
+        {/* 6. Escalações & Lesões */}
         {activeTab === 'lineups' && (
           <div className="space-y-6">
             <div className="mb-4">
               <h4 className="text-base font-bold text-white">Escalações das Equipes</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Lista de titulares, lesões e suspensões projetadas</p>
+              <p className="text-xs text-slate-400 mt-0.5">Lista oficial de titulares, lesões e desfalques</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Home Team */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 pb-2 border-b border-[#1f293d]">
-                  <TeamLogo logoUrl={matchData.homeTeam.logo} teamName={matchData.homeTeam.name} size={20} className="h-5 w-5" />
-                  <h5 className="font-extrabold text-white">{matchData.homeTeam.name}</h5>
-                </div>
-                
-                {/* Titulares */}
-                <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">Jogadores Titulares</p>
-                  {matchData.lineups.filter(l => l.teamId === matchData.homeTeam.id && l.starter).map((l, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-xs p-2 bg-[#1e293b]/20 border border-[#1f293d] rounded">
-                      <span className="font-medium text-white">{l.playerName}</span>
-                      <span className="text-slate-500 bg-[#1e293b] px-1.5 py-0.5 rounded text-[10px]">{l.position}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Lesões / Suspensões */}
-                <div className="space-y-2 pt-2">
-                  <p className="text-[10px] text-red-500 font-bold uppercase">Desfalques (Duvidosos/Out)</p>
-                  {matchData.lineups.filter(l => l.teamId === matchData.homeTeam.id && (l.injured || l.suspended)).length === 0 ? (
-                    <p className="text-xs text-slate-500">Sem desfalques registrados.</p>
-                  ) : (
-                    matchData.lineups.filter(l => l.teamId === matchData.homeTeam.id && (l.injured || l.suspended)).map((l, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-xs p-2 bg-red-950/10 border border-red-900/20 rounded text-red-400">
-                        <span>{l.playerName}</span>
-                        <span className="text-[9px] font-bold bg-red-950 px-1.5 py-0.5 rounded">{l.injured ? 'Lesionado' : 'Suspenso'}</span>
+            {matchData.lineups && matchData.lineups.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Home Team */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 pb-2 border-b border-[#1f293d]">
+                    <TeamLogo logoUrl={matchData.homeTeam.logo} teamName={matchData.homeTeam.name} size={20} className="h-5 w-5" />
+                    <h5 className="font-extrabold text-white">{matchData.homeTeam.name}</h5>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">Jogadores Titulares</p>
+                    {matchData.lineups.filter((l: any) => l.teamId === matchData.homeTeam.id && l.starter).map((l: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center text-xs p-2 bg-[#1e293b]/20 border border-[#1f293d] rounded">
+                        <span className="font-medium text-white">{l.playerName}</span>
+                        <span className="text-slate-500 bg-[#1e293b] px-1.5 py-0.5 rounded text-[10px]">{l.position}</span>
                       </div>
-                    ))
-                  )}
+                    ))}
+                  </div>
+                </div>
+                {/* Away Team */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 pb-2 border-b border-[#1f293d]">
+                    <TeamLogo logoUrl={matchData.awayTeam.logo} teamName={matchData.awayTeam.name} size={20} className="h-5 w-5" />
+                    <h5 className="font-extrabold text-white">{matchData.awayTeam.name}</h5>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">Jogadores Titulares</p>
+                    {matchData.lineups.filter((l: any) => l.teamId === matchData.awayTeam.id && l.starter).map((l: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center text-xs p-2 bg-[#1e293b]/20 border border-[#1f293d] rounded">
+                        <span className="font-medium text-white">{l.playerName}</span>
+                        <span className="text-slate-500 bg-[#1e293b] px-1.5 py-0.5 rounded text-[10px]">{l.position}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              {/* Away Team */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 pb-2 border-b border-[#1f293d]">
-                  <TeamLogo logoUrl={matchData.awayTeam.logo} teamName={matchData.awayTeam.name} size={20} className="h-5 w-5" />
-                  <h5 className="font-extrabold text-white">{matchData.awayTeam.name}</h5>
-                </div>
-                
-                {/* Titulares */}
-                <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">Jogadores Titulares</p>
-                  {matchData.lineups.filter(l => l.teamId === matchData.awayTeam.id && l.starter).map((l, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-xs p-2 bg-[#1e293b]/20 border border-[#1f293d] rounded">
-                      <span className="font-medium text-white">{l.playerName}</span>
-                      <span className="text-slate-500 bg-[#1e293b] px-1.5 py-0.5 rounded text-[10px]">{l.position}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Lesões / Suspensões */}
-                <div className="space-y-2 pt-2">
-                  <p className="text-[10px] text-red-500 font-bold uppercase">Desfalques (Duvidosos/Out)</p>
-                  {matchData.lineups.filter(l => l.teamId === matchData.awayTeam.id && (l.injured || l.suspended)).length === 0 ? (
-                    <p className="text-xs text-slate-500">Sem desfalques registrados.</p>
-                  ) : (
-                    matchData.lineups.filter(l => l.teamId === matchData.awayTeam.id && (l.injured || l.suspended)).map((l, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-xs p-2 bg-red-950/10 border border-red-900/20 rounded text-red-400">
-                        <span>{l.playerName}</span>
-                        <span className="text-[9px] font-bold bg-red-950 px-1.5 py-0.5 rounded">{l.injured ? 'Lesionado' : 'Suspenso'}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
+            ) : (
+              <div className="p-8 border border-[#1f293d] rounded-2xl bg-[#090d16]/60 text-center space-y-3">
+                <AlertTriangle className="h-8 w-8 text-amber-400 mx-auto" />
+                <h5 className="text-sm font-bold text-white">Dados indisponíveis</h5>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  As escalações oficiais e relatório de desfalques em tempo real não são fornecidos na API gratuita Football-Data.org. Em cumprimento à regra de integridade de dados reais (zero mocks/placeholders), não exibimos escalações fictícias.
+                </p>
+                <span className="inline-block text-[10px] uppercase tracking-wider font-extrabold text-amber-400 bg-amber-950/40 border border-amber-800/40 px-3 py-1.5 rounded-full">
+                  Fonte de Dados: API-Football Pro (Requer Assinatura)
+                </span>
               </div>
-            </div>
+            )}
           </div>
         )}
 

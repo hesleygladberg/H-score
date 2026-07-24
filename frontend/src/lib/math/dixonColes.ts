@@ -28,8 +28,8 @@ export function calculateDixonColesPrediction(
   const rho = -0.08; // Parâmetro de correlação Dixon-Coles padrão
 
   if (history.length === 0) {
-    // Retornar médias padrão caso não haja histórico suficiente
-    return generatePredictionFromLambdas(homeTeam, awayTeam, 1.4, 1.1, rho);
+    // Médias históricas realistas de partidas de futebol profissional
+    return generatePredictionFromLambdas(homeTeam, awayTeam, 1.65, 0.85, rho);
   }
 
   // 1. Médias gerais da liga
@@ -55,9 +55,9 @@ export function calculateDixonColesPrediction(
   const awayAttack = (awayGoalsScoredAway / awayMatchesAway) / (avgAwayGoals || 1.0);
   const awayDefense = (awayGoalsConcededAway / awayMatchesAway) / (avgHomeGoals || 1.3);
 
-  // 4. Calcular lambdas teóricos (Home Advantage = 1.35)
-  const lambdaHome = Math.max(0.1, homeAttack * awayDefense * 1.35);
-  const lambdaAway = Math.max(0.1, awayAttack * homeDefense);
+  // 4. Calcular lambdas teóricos com limites físicos de gols por partida (1.20 a 2.50 para casa, 0.65 a 2.00 para fora)
+  const lambdaHome = Math.max(1.20, Math.min(2.80, homeAttack * awayDefense * 1.35));
+  const lambdaAway = Math.max(0.65, Math.min(2.20, awayAttack * homeDefense));
 
   return generatePredictionFromLambdas(homeTeam, awayTeam, lambdaHome, lambdaAway, rho);
 }
@@ -140,6 +140,7 @@ export function generatePredictionFromLambdas(
   return {
     homeTeam,
     awayTeam,
+    source: 'Modelo Dixon-Coles & Poisson',
     probabilities: {
       home_win: parseFloat(homeWin.toFixed(4)),
       draw: parseFloat(draw.toFixed(4)),

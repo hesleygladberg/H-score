@@ -652,17 +652,45 @@ export default function MatchDetailsPage() {
               </div>
             )}
 
-            {/* Tabela Principal de Placares Exatos (Ordem Decrescente de Probabilidade Real) */}
+            {/* Tabela Principal de Placares Exatos (Estilo CSCORE) */}
             <div className="overflow-x-auto rounded-xl border border-[#1f293d]">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[#0e1420] text-slate-400 border-b border-[#1f293d]">
-                    <th className="py-3 px-4 text-xs font-bold uppercase text-center w-14">Dutch</th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase">Placar Exato</th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">Probabilidade Real</th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">Odd Justa</th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">Odd Mercado (Editável)</th>
-                    <th className="py-3 px-4 text-xs font-bold uppercase text-right">Valor Esperado (EV)</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center w-14">
+                      <div className="flex flex-col items-center">
+                        <span>SOMAR</span>
+                        <span className="text-[10px] text-[#10b981] font-bold mt-0.5">Qtd: {selectedScores.length}</span>
+                      </div>
+                    </th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase">PLACAR EXATO</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">PROBABILIDADE REAL</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">ODD JUSTA</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-center">
+                      <div className="flex flex-col items-center">
+                        <span>DIGITAR ODD</span>
+                        <button 
+                          onClick={() => setCustomOddInputs({})}
+                          className="text-[10px] text-slate-400 hover:text-[#10b981] font-bold uppercase underline transition cursor-pointer mt-0.5"
+                        >
+                          ZERAR
+                        </button>
+                      </div>
+                    </th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase text-right">
+                      <div className="flex flex-col items-end">
+                        <span>EV BACK</span>
+                        {dutchingResult && (
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded mt-0.5 ${
+                            (dutchingResult.ev || 0) >= 0 
+                              ? 'bg-[#10b981]/20 text-[#8ff38f] border border-[#10b981]/30' 
+                              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          }`}>
+                            EV TOTAL: {(dutchingResult.ev || 0) >= 0 ? `+${((dutchingResult.ev || 0) * 100).toFixed(2)}%` : `${((dutchingResult.ev || 0) * 100).toFixed(2)}%`}
+                          </span>
+                        )}
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1f293d] bg-[#131a26]">
@@ -723,11 +751,11 @@ export default function MatchDetailsPage() {
                         <td className="py-3 px-4 text-sm text-right whitespace-nowrap font-bold">
                           {cs.ev >= 0 ? (
                             <span className="bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 font-black px-2.5 py-1 rounded-md">
-                              +{cs.ev.toFixed(1)}% EV
+                              +{cs.ev.toFixed(2)}% EV
                             </span>
                           ) : (
                             <span className="bg-[#1e293b]/50 text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-md">
-                              {cs.ev.toFixed(1)}% EV
+                              {cs.ev.toFixed(2)}% EV
                             </span>
                           )}
                         </td>

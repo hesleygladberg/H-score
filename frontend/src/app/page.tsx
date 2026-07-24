@@ -76,6 +76,10 @@ export default function Dashboard() {
       <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-900/40 to-slate-900 border border-emerald-500/20 p-6 md:p-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-2xl space-y-2">
+          <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full mb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-xs font-bold text-[#8ff38f]">🟢 API Real Conectada (Football-Data.org)</span>
+          </div>
           <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
             Football Analytics <span className="text-[#10b981]">Pro</span>
           </h2>

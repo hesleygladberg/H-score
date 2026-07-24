@@ -225,9 +225,17 @@ export default function ScannerPage() {
 
                 {/* Footer buttons / EV status */}
                 <div className="flex items-center justify-between border-t border-[#1f293d] pt-4 mt-5">
-                  <div className="flex items-center space-x-1.5">
-                    <TrendingUp className="h-4 w-4 text-[#10b981]" />
-                    <span className="text-xs font-bold text-[#10b981]">+{opp.ev}% EV Esperado</span>
+                  <div className="flex items-center space-x-2">
+                    {opp.ev > 8 ? (
+                      <span className="px-2 py-0.5 text-[9px] font-black bg-emerald-950/80 text-[#8ff38f] border border-emerald-800/80 rounded-full uppercase">EXCELENTE</span>
+                    ) : opp.ev >= 3 ? (
+                      <span className="px-2 py-0.5 text-[9px] font-black bg-amber-950/80 text-amber-300 border border-amber-800/80 rounded-full uppercase">BOM</span>
+                    ) : opp.ev >= 0 ? (
+                      <span className="px-2 py-0.5 text-[9px] font-black bg-slate-800 text-slate-300 border border-slate-700 rounded-full uppercase">NEUTRO</span>
+                    ) : (
+                      <span className="px-2 py-0.5 text-[9px] font-black bg-red-950/80 text-red-400 border border-red-800/80 rounded-full uppercase">RUIM</span>
+                    )}
+                    <span className="text-xs font-bold text-[#10b981]">+{opp.ev}% EV</span>
                   </div>
                   
                   <Link 

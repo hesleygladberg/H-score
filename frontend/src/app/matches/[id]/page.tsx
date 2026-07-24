@@ -16,6 +16,9 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import TeamLogo from '@/components/TeamLogo';
+import CorrectScoreMatrix from '@/components/CorrectScoreMatrix';
+import CSScoreTopPanel from '@/components/CSScoreTopPanel';
+import CalculationLogModal from '@/components/CalculationLogModal';
 
 interface MatchDetails {
   id: number;
@@ -78,6 +81,21 @@ export default function MatchDetailsPage() {
   const [dutchingStake, setDutchingStake] = useState<string>('100');
   const [dutchingResult, setDutchingResult] = useState<any | null>(null);
   const [customOddInputs, setCustomOddInputs] = useState<Record<string, string>>({});
+  const [isCalculationModalOpen, setIsCalculationModalOpen] = useState(false);
+
+  // Helper para Badges de Classificação de Entradas (Melhoria 7)
+  const renderEvBadge = (evPct: number) => {
+    if (evPct > 8) {
+      return <span className="px-2 py-0.5 text-[9px] font-black bg-emerald-950/80 text-[#8ff38f] border border-emerald-800/80 rounded-full uppercase">EXCELENTE</span>;
+    }
+    if (evPct >= 3) {
+      return <span className="px-2 py-0.5 text-[9px] font-black bg-amber-950/80 text-amber-300 border border-amber-800/80 rounded-full uppercase">BOM</span>;
+    }
+    if (evPct >= 0) {
+      return <span className="px-2 py-0.5 text-[9px] font-black bg-slate-800 text-slate-300 border border-slate-700 rounded-full uppercase">NEUTRO</span>;
+    }
+    return <span className="px-2 py-0.5 text-[9px] font-black bg-red-950/80 text-red-400 border border-red-800/80 rounded-full uppercase">RUIM</span>;
+  };
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -269,6 +287,35 @@ export default function MatchDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Painel Profissional CSCORE no Topo (Melhoria 13 & 14) */}
+      {matchData.probabilities && (
+        <CSScoreTopPanel
+          probabilities={{
+            home_win: matchData.probabilities.home_win,
+            draw: matchData.probabilities.draw,
+            away_win: matchData.probabilities.away_win,
+            over_25: matchData.probabilities.over_25,
+            btts_yes: matchData.probabilities.btts_yes,
+          }}
+          mostLikelyScore={
+            correctScoresList[0]
+              ? { score: correctScoresList[0].score, probability: correctScoresList[0].probability }
+              : undefined
+          }
+          maxEvItem={
+            correctScoresList.reduce((max: any, curr: any) => (curr.ev > (max?.ev ?? -Infinity) ? curr : max), correctScoresList[0])
+              ? {
+                  score: correctScoresList.reduce((max: any, curr: any) => (curr.ev > (max?.ev ?? -Infinity) ? curr : max), correctScoresList[0]).score,
+                  ev: correctScoresList.reduce((max: any, curr: any) => (curr.ev > (max?.ev ?? -Infinity) ? curr : max), correctScoresList[0]).ev,
+                }
+              : undefined
+          }
+          homeTeamName={matchData.homeTeam.name}
+          awayTeamName={matchData.awayTeam.name}
+          onOpenDebugModal={() => setIsCalculationModalOpen(true)}
+        />
+      )}
 
       {/* Tabs Navigation */}
       <div className="flex flex-wrap gap-1.5 p-1.5 bg-[#131a26] border border-[#1f293d] rounded-xl">
@@ -546,7 +593,14 @@ export default function MatchDetailsPage() {
         {/* 4. Placares Exatos & Dutching Integrado */}
         {activeTab === 'correctscore' && (
           <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-[#1f293d]">
+            {/* Matriz 4x5 de Correct Score (Melhoria 1) */}
+            <CorrectScoreMatrix
+              scores={correctScoresList}
+              selectedScores={selectedScores}
+              onToggleScore={toggleScoreSelection}
+            />
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-[#1f293d] pt-4">
               <div>
                 <h4 className="text-base font-bold text-white flex items-center gap-2">
                   <span>Mercado de Placares Exatos & Dutching</span>
@@ -753,14 +807,15 @@ export default function MatchDetailsPage() {
                           </div>
                         </td>
 
-                        {/* EV Badge: Mostra valor EV real positivo ou negativo */}
-                        <td className="py-3 px-4 text-sm text-right whitespace-nowrap font-bold">
+                        {/* EV Badge: Mostra valor EV real e badge de classificação (Melhoria 7) */}
+                        <td className="py-3 px-4 text-sm text-right whitespace-nowrap font-bold flex items-center justify-end space-x-2">
+                          {renderEvBadge(cs.ev)}
                           {cs.ev >= 0 ? (
-                            <span className="bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 font-black px-2.5 py-1 rounded-md">
+                            <span className="bg-[#10b981]/15 text-[#8ff38f] border border-[#10b981]/30 font-black px-2 py-0.5 rounded-md">
                               +{cs.ev.toFixed(2)}% EV
                             </span>
                           ) : (
-                            <span className="bg-[#1e293b]/50 text-red-400 border border-red-500/20 font-bold px-2.5 py-1 rounded-md">
+                            <span className="bg-[#1e293b]/50 text-red-400 border border-red-500/20 font-bold px-2 py-0.5 rounded-md">
                               {cs.ev.toFixed(2)}% EV
                             </span>
                           )}
@@ -988,6 +1043,16 @@ export default function MatchDetailsPage() {
         )}
 
       </div>
+
+      {/* Modal de Transparência e Log de Cálculos (Melhoria 14) */}
+      <CalculationLogModal
+        isOpen={isCalculationModalOpen}
+        onClose={() => setIsCalculationModalOpen(false)}
+        homeTeamName={matchData.homeTeam.name}
+        awayTeamName={matchData.awayTeam.name}
+        expectedGoals={matchData.expectedGoals || undefined}
+        probabilities={matchData.probabilities || undefined}
+      />
     </div>
   );
 }
